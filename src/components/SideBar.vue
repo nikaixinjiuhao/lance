@@ -45,6 +45,8 @@
         <div class="expansion-panel-content open">
           <router-link class="list-item" to="/index">首页</router-link>
           <router-link class="list-item" to="/purchase">收货</router-link>
+          <router-link class="list-item" to="/move">移库</router-link>
+          <router-link class="list-item" to="/sendMaterial">生产发料</router-link>
           <router-link class="list-item" to="/print">打印标签</router-link>
           <router-link class="list-item" to="/bom">BOM</router-link>
         </div>

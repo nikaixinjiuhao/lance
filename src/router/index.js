@@ -21,6 +21,16 @@ const router = new VueRouter({
           component: () => import ('../views/Purchase'),
         },
         {
+          path: '/move',
+          name: 'move',
+          component: () => import ('../views/Move'),
+        },
+        {
+          path: '/sendMaterial',
+          name: 'sendMaterial',
+          component: () => import ('../views/SendMaterial'),
+        },
+        {
           path: '/print',
           name: 'print',
           component: () => import ('../views/Print'),

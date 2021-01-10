@@ -22,10 +22,10 @@
 
       </form>
       <button @click="query()">查询</button>
-      <button id="print" onclick="printTable()">打印</button>
+      <button id="print" @click="printTable()">打印</button>
     </ul>
-    <div>
-      <div class="lists" v-for="(item,index) in tableList" :key="index">
+    <div v-if="isShowTableList">
+      <div :model="tableList" class="lists" v-for="(item,index) in tableList" :key="index">
         <table width='50%' border="1" cellspacing="0" cellpadding="5">
           <tr>
             <td><img class="logo" src="/image/logo.jpg" alt=""></td>
@@ -76,7 +76,7 @@
           </tr>
         </table>
         <div class="selectContent">
-          <input class="check" type="checkbox" @click="selectPrint(this)" checked name="" :id="index"
+          <input class="check" type="checkbox" @click="selectPrint(index)" checked name="" :id="index"
                  value=""><span>勾选打印</span>
         </div>
       </div>
@@ -89,10 +89,15 @@
     name: 'print',
     data() {
       return {
+        isShowTableList:false,
         form: {
           deliveryNumber: '',
         },
-        tableList: [],
+        tableList: [
+          {
+            partNumber:"11"
+          }
+        ],
         notSelect: [],  //不打印数组
       }
     },
@@ -100,31 +105,26 @@
       query() {
         if ($("#deliveryNumber").val().trim() !== '') {
           $("#require").html('');
-          $.ajax({
-            url: "http://10.0.0.81:8021/api/storage/print/search",
-            type: "get",
-            contentType: "application/json;charset=UTF-8",
-            dataType: "text",
-            data: {
+          this.axios({
+            url:'/api/storage/print/search',
+            method:"get",
+            data:{
               deliveryNumber: $("#deliveryNumber").val(),
               partNumber: $("#partNumber").val(),
               quantity: $("#quantity").val(),
               quantityPerPackage: $("#quantityPerPackage").val()
-            },
-            success: function (data) {
-              const res = JSON.parse(data);
-              if (res.code === 200) {
-                if (res.data.length > 0) {
-                  $("#print").show()
-                  this.tableList = res.data;
-                  console.log(this.tableList)
-                }
-              }
-            },
-            error: function () {
-              alert("查询失败！");
             }
-          });
+          }).then((res)=>{
+            if (res.code === 200) {
+              if (res.data.length > 0) {
+                $("#print").show()
+                this.tableList = res.data;
+                this.isShowTableList=true;
+              }
+            }
+          }).catch((err)=>{
+            this.$message.error(err.message)
+          })
           $('#Form')[0].reset()
         } else {
           $("#require").html('送货单号必填');
@@ -134,7 +134,7 @@
 
       //判断是否勾选打印
       selectPrint(value) {
-        if (value.checked) {
+        if (value.checked) { //?
           let index = this.notSelect.indexOf($(value).attr('id'))
           if (index !== -1) {
             this.notSelect.splice(index, 1)
