@@ -1,35 +1,31 @@
 <template>
-  <div class="">
+  <div class="printPage">
     <ul class="formTxt">
-      <form id="Form">
-        <li>
-          <label for="deliveryNumber"><span>送货单号:</span> </label>
-          <input id="deliveryNumber" name="deliveryNumber" value="">
-          <i id="require"></i>
-        </li>
-        <li>
-          <label><span>产品编号:</span> </label>
-          <input id="partNumber" value="">
-        </li>
-        <li>
-          <label><span>数量:</span> </label>
-          <input id="quantity" value="">
-        </li>
-        <li>
-          <label><span>最小包装量:</span></label>
-          <input id="quantityPerPackage" value="">
-        </li>
-
-      </form>
-      <button @click="query()">查询</button>
-      <button id="print" @click="printTable()">打印</button>
+      <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+        <el-form-item label="送货单号：" prop="deliveryNumber">
+          <el-input v-model="ruleForm.deliveryNumber" style="width: 300px"></el-input>
+        </el-form-item>
+        <el-form-item label="产品编号：" prop="partNumber">
+          <el-input v-model="ruleForm.partNumber" style="width: 300px"></el-input>
+        </el-form-item>
+        <el-form-item label="数量：" prop="quantity">
+          <el-input v-model="ruleForm.quantity" style="width: 300px"></el-input>
+        </el-form-item>
+        <el-form-item label="最小包装量：" prop="quantity">
+          <el-input v-model="ruleForm.quantityPerPackage" style="width: 300px"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="query('ruleForm')">查询</el-button>
+          <el-button @click="printTable('ruleForm')">打印</el-button>
+        </el-form-item>
+      </el-form>
     </ul>
-    <div v-if="isShowTableList">
-      <div :model="tableList" class="lists" v-for="(item,index) in tableList" :key="index">
-        <table width='50%' border="1" cellspacing="0" cellpadding="5">
+    <div class="PrintTables" v-if="isShowTableList">
+      <div  class="lists" v-for="(item,index) in tableList" :key="index">
+        <table width="450px" border="1" cellspacing="0" cellpadding="5">
           <tr>
-            <td><img class="logo" src="/image/logo.jpg" alt=""></td>
-            <td rowspan="2"><img class="QRCode" :src="item.qr" alt=""></td>
+            <td><img class="logo" src="../assets/image/logo.jpg" alt=""></td>
+            <td rowspan="2" style="text-align: center"><img class="QRCode" :src="item.qr" alt=""></td>
           </tr>
           <tr>
             <td><span>组件号</span>
@@ -81,7 +77,6 @@
         </div>
       </div>
     </div>
-
   </div>
 </template>
 <script>
@@ -89,77 +84,93 @@
     name: 'print',
     data() {
       return {
-        isShowTableList:false,
-        form: {
+        ruleForm: {
           deliveryNumber: '',
+          partNumber:'',
+          quantity:'',
+          quantityPerPackage:''
         },
-        tableList: [
-          {
-            partNumber:"11"
-          }
-        ],
+        rules:{
+          deliveryNumber:[
+            { required: true, message:'送货单号必填',trigger: 'blur' }
+          ]
+        },
+        isShowTableList:false,
+        tableList: [],//打印表格数据
         notSelect: [],  //不打印数组
+        oldPage:null,
+        PrintPage:null
       }
     },
     methods: {
-      query() {
-        if ($("#deliveryNumber").val().trim() !== '') {
-          $("#require").html('');
-          this.axios({
-            url:'/api/storage/print/search',
-            method:"get",
-            data:{
-              deliveryNumber: $("#deliveryNumber").val(),
-              partNumber: $("#partNumber").val(),
-              quantity: $("#quantity").val(),
-              quantityPerPackage: $("#quantityPerPackage").val()
-            }
-          }).then((res)=>{
-            if (res.code === 200) {
-              if (res.data.length > 0) {
-                $("#print").show()
-                this.tableList = res.data;
-                this.isShowTableList=true;
+      query(formName) {
+        this.$refs[formName].validate((valid)=>{
+          if(valid){
+            this.axios({
+              url:'/api/storage/print/search',
+              method:"get",
+              data:{
+                deliveryNumber: this.ruleForm.deliveryNumber,
+                partNumber: this.ruleForm.partNumber,
+                quantity: this.ruleForm.quantity,
+                quantityPerPackage: this.ruleForm.quantityPerPackage
               }
-            }
-          }).catch((err)=>{
-            this.$message.error(err.message)
-          })
-          $('#Form')[0].reset()
-        } else {
-          $("#require").html('送货单号必填');
-        }
+            }).then((res)=>{
+              if (res.code === 200) {
+                if (res.data.length > 0) {
+                  $("#print").show()
+                  this.tableList = res.data;
+                  this.isShowTableList=true;
+                }
+              }
+            }).catch((err)=>{
+              this.$message.error(err.message)
+            })
+            // $('#Form')[0].reset()
+          }
+        })
       },
 
 
       //判断是否勾选打印
       selectPrint(value) {
-        if (value.checked) { //?
-          let index = this.notSelect.indexOf($(value).attr('id'))
+        if ($(".check").eq(value)[0].checked) {
+          let index = this.notSelect.indexOf(value)
           if (index !== -1) {
             this.notSelect.splice(index, 1)
           }
         } else {
-          this.notSelect.push($(value).attr('id'))
+          this.notSelect.push(value)
         }
       },
 
       //打印
       printTable() {
-        $(".formTxt").hide();
-        for (let k = 0; k < $(".selectContent").length; k++) {
-          $(".selectContent").eq(k).hide()
-        }
-        for (let j = 0; j < this.notSelect.length; j++) {
-          $(".table").eq(this.notSelect[j]).hide()
-        }
-        window.print();
-        $(".formTxt").show()
-        for (let j = 0; j < this.notSelect.length; j++) {
-          $(".table").eq(this.notSelect[j]).show()
-        }
-        for (let k = 0; k < $(".selectContent").length; k++) {
-          $(".selectContent").eq(k).show()
+        if(this.tableList.length>0){
+          if(this.tableList.length!==this.notSelect.length){
+            this.oldPage=document.getElementById("app");
+            this.PrintPage = document.getElementsByClassName("PrintTables")[0].innerHTML;
+            document.body.innerHTML = this.PrintPage;
+            for (let k = 0; k < $(".selectContent").length; k++) {
+              $(".selectContent").eq(k).hide()
+            }
+            for (let j = 0; j < this.notSelect.length; j++) {
+              $(".table").eq(this.notSelect[j]).hide()
+            }
+            window.print();
+            document.body.innerHTML=''
+            document.body.appendChild(this.oldPage);
+            for (let j = 0; j < this.notSelect.length; j++) {
+              $(".table").eq(this.notSelect[j]).show()
+            }
+            for (let k = 0; k < $(".selectContent").length; k++) {
+              $(".selectContent").eq(k).show()
+            }
+          }else{
+            this.$message.error("暂无可打印内容！")
+          }
+        }else{
+          this.$message.error("请先查询")
         }
       },
 
@@ -223,6 +234,10 @@
   td h3, .unit {
     font-size: 23px;
   }
+  .logo {
+    width: 90px;
+    height: auto;
+  }
 
   .amount {
     width: auto;
@@ -284,6 +299,7 @@
 
   .left p {
     color: #666;
+    margin: 14px 0 0;
   }
 
   .right {
@@ -295,5 +311,8 @@
     position: absolute;
     bottom: 30px;
     color: #666;
+  }
+  .QRCode {
+    width: 145px;
   }
 </style>

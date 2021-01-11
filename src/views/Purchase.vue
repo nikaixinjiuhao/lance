@@ -45,7 +45,7 @@
               <div class="QRtable" v-for="(item,index) in multipleSelection" :key="index">
                 <table width='420' border="1" cellspacing="0">
                   <tr>
-                    <td><img class="logo" src="/image/logo.jpg" alt=""></td>
+                    <td><img class="logo" src="../assets/image/logo.jpg" alt=""></td>
                     <td rowspan="2" style="text-align: center">
                       <img class="QRCode" :src="item.qr !== null ? item.qr : ''" alt=""></td>
                   </tr>
@@ -628,7 +628,6 @@
       PrintTables() {
         this.isPrintBtn = false;
         this.oldPage=document.getElementById("app");
-        document.cookie=`deliveryNumber=${this.datas.deliveryNumber}`;
         this.printPage = document.getElementsByClassName("QRPrintContent")[0].innerHTML;
         document.body.innerHTML = this.printPage;
         for (let k = 0; k < $(".selectContent").length; k++) {

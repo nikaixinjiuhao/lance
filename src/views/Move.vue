@@ -1,54 +1,48 @@
 <template>
     <div class="">
       <div class="form">
-        <div class="formIpt">
-          <label for="fromName">从库位:</label>
-          <input type="text" id="fromName" th:value="${fromName}"><br>
-          <label for="serialNumber_scan">批次号:</label>
-          <input type="text" @change="changeData()" id="serialNumber_scan" placeholder=""><br>
-          <input type="hidden" id="serialNumber"/>
-          <label for="quantity">数量:</label>
-          <input type="number" id="quantity" placeholder=""><br>
-          <label for="toName">至库位:</label>
-          <input type="text" id="toName" th:value="${toName}"><br>
-        </div>
-        <div class="formBtn">
-          <div>
-            <button type="button" class="btn btn-danger cancel" @click="cancel()">取 消</button>
-            <button type="button" class="btn btn-success submit" @click="submit()">提 交</button>
-            <br/>
-          </div>
-          <div class="checkbox">
-            <input type="checkbox" @click="selects()" name="" id="" value=""><span>自动提交/打勾后自动提交</span>
-          </div>
-        </div>
+        <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="formIpt">
+          <el-form-item label="从库位:" prop="fromName">
+            <el-input id="fromName" v-model="ruleForm.fromName"></el-input>
+          </el-form-item>
+          <el-form-item label="批次号:" prop="serialNumber">
+            <el-input id="serialNumber_scan" @change="changeData()" v-model="ruleForm.serialNumber"></el-input>
+          </el-form-item>
+          <el-form-item label="数量:" prop="quantity">
+            <el-input id="quantity" v-model="ruleForm.quantity"></el-input>
+          </el-form-item>
+          <el-form-item label="至库位:" prop="toName">
+            <el-input id="toName" v-model="ruleForm.toName" ></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="success" class="cancel" @click="submit('ruleForm')">提 交</el-button>
+            <el-button class="submit" type="danger" @click="cancel('ruleForm')">取 消</el-button>
+          </el-form-item>
+          <el-form-item>
+            <el-checkbox v-model="autoChecked" @click="selects()">自动提交/打勾后自动提交</el-checkbox>
+          </el-form-item>
+        </el-form>
       </div>
-      <ul>
-        <li>
-          <span>物料号:</span>
-          <p id="partNumber"></p>
-        </li>
-        <li>
-          <span>物料名称:</span>
-          <p id="partName"></p>
-        </li>
-        <li>
-          <span>数量:</span>
-          <p id="quantity_show"></p>
-        </li>
-        <li>
-          <span>采购订单:</span>
-          <p id="purchaseOrder"></p>
-        </li>
-        <li>
-          <span>供应商名称:</span>
-          <p id="supplierName"></p>
-        </li>
-        <li>
-          <span>供应商SN号:</span>
-          <p id="supplierSN"></p>
-        </li>
-      </ul>
+      <el-form :model="form" :rules="formRules" ref="ruleForm" label-width="100px" class="formIpt">
+        <el-form-item label="物料号:" prop="partNumber">
+          <p v-model="form.partNumber">{{form.partNumber}}</p>
+        </el-form-item>
+        <el-form-item label="物料名称:" prop="partName">
+          <p id="partName" @change="changeData()" v-model="form.partName">{{form.partName}}</p>
+        </el-form-item>
+        <el-form-item label="数量:" prop="quantity_show">
+          <p id="quantity_show" v-model="form.quantity_show">{{form.quantity_show}}</p>
+        </el-form-item>
+        <el-form-item label="采购订单:" prop="purchaseOrder">
+          <p id="purchaseOrder" v-model="form.purchaseOrder" >{{form.purchaseOrder}}</p>
+        </el-form-item >
+        <el-form-item label="供应商名称:">
+          <p id="supplierName" v-model="form.supplierName" >{{form.supplierName}}</p>
+        </el-form-item>
+        <el-form-item label="供应商SN号:">
+          <p id="supplierSN" v-model="form.supplierSN" >{{form.supplierSN}}</p>
+        </el-form-item>
+      </el-form>
     </div>
 </template>
 <script>
@@ -56,7 +50,28 @@
     name: 'move',
     data() {
       return {
-        storageList:[]
+        ruleForm:{
+          fromName:'',
+          serialNumber:'',
+          quantity:null,
+          toName:''
+        },
+        rules:{
+
+        },
+        form:{
+          partNumber:'',
+          partName:'',
+          quantity_show:null,
+          purchaseOrder:'',
+          supplierName:'',
+          supplierSN:''
+        },
+        formRules:{
+
+        },
+        storageList:[],
+        autoChecked:true,//默认自动提交
       }
     },
     methods: {
@@ -90,6 +105,7 @@
           this.$message.error(err.message)
         })
       },
+      //批次号
       changeData() {
         const info = document.getElementById('serialNumber_scan').value;
         if (info !== '' && $("#serialNumber_scan").val().trim() !== '') {
@@ -110,7 +126,7 @@
                 $("#supplierSN").html(storage.supplierSN);
               }
             }else{
-              this.$message('参数错误!')
+              this.$message.error(res.message)
             }
           }).catch((err)=>{
             this.$message.error(err.message)
@@ -171,5 +187,8 @@
 
   li {
     list-style: none;
+  }
+  .el-form-item{
+    margin: 0;
   }
 </style>
